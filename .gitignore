@@ -1,2 +1,7 @@
 .idea
 jec_prediction.log
+data/
+pipelines/__pycache__/
+processing_data/__pycache__/
+requirements.txt
+util/__pycache__/
