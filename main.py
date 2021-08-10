@@ -12,7 +12,7 @@ import sys
 import pandas as pd
 
 from pipelines import training
-from processing_data.preprocessing import process_attributes
+from data_processing.preprocessing import process_attributes
 from util.constants import Defs, OPTION_FIELDS
 
 

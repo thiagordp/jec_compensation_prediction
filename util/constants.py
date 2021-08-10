@@ -13,6 +13,7 @@ class Defs:
     APPLY_STEMMING = False
     REMOVE_STOPWORDS = True
     GET_INDIVIDUAL_VALUES = True
+    K_BEST_FEATURES = 500
 
     def __init__(self):
         pass

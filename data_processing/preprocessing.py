@@ -52,7 +52,7 @@ def process_attributes():
     attributes_df = attributes_df[attributes_df["Data do Julgamento"].notna()]
     attributes_df = attributes_df[attributes_df["Data do Julgamento"].notnull()]
 
-    logging.info("Starting attributes processing_data")
+    logging.info("Starting attributes data_processing")
     final_data = list()
 
     for index, row in tqdm.tqdm(attributes_df.iterrows()):
@@ -160,7 +160,7 @@ def process_attributes():
     list_ids = list(final_df["judgement"])
     plt.savefig("data/hist_attributes.pdf")
 
-    logging.info("Finished processing_data attributes")
+    logging.info("Finished data_processing attributes")
 
     return list_ids
 

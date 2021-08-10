@@ -2,7 +2,7 @@
 Code for training the models
 """
 import logging
-from processing_data import preprocessing
+from data_processing import preprocessing, representation
 
 
 def training_pipeline(inputs):
@@ -18,10 +18,14 @@ def training_pipeline(inputs):
 
     logging.info("------------------------------------------------------------------------")
     # logging.info("                            Text Representation                         ")
+    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(processed_inputs)
 
+    outputs["tf_transformer"] = tf_transformer
+    outputs["tf_inputs"] = tf_inputs
+    outputs["tf_features"] = list_features
 
     logging.info("------------------------------------------------------------------------")
-    # logging.info("                             Feature Selection                          ")
+
 
     logging.info("------------------------------------------------------------------------")
     # logging.info("                             Addition of AELE                           ")
