@@ -2,7 +2,8 @@
 Code for training the models
 """
 import logging
-from data_processing import preprocessing, representation
+from data_processing import preprocessing
+from pipelines import representation
 
 
 def training_pipeline(inputs):
@@ -25,6 +26,7 @@ def training_pipeline(inputs):
     outputs["tf_features"] = list_features
 
     logging.info("------------------------------------------------------------------------")
+
 
 
     logging.info("------------------------------------------------------------------------")
