@@ -165,6 +165,29 @@ def process_attributes():
     return list_ids
 
 
+def load_attributes(inputs):
+    logging.info("Loading attributes")
+
+    dict_outputs = dict()
+
+    attributes_df = pd.read_csv("data/attributes.csv")
+
+    for key in tqdm.tqdm(inputs.keys()):
+
+        filtered_df = attributes_df.loc[attributes_df["judgement"] == int(key)]
+
+        if len(filtered_df.index) == 0:
+            logging.error("Found no attributes for judgment %s" % key)
+            continue
+
+        dict_attr = filtered_df.to_dict('records')[0]
+        dict_outputs[key] = dict_attr
+
+    logging.info("Finished loading attributes")
+    # TODO: merge inputs and attr
+    return dict_outputs
+
+
 def remove_stopwords(text):
     text_tokens = word_tokenize(text)
     tokens_without_sw = [word for word in text_tokens if word not in stopwords.words('portuguese')]
@@ -203,7 +226,7 @@ def clear_text(text):
     for letter in "bcdfghjklmnpqrstvwxyz":
         text = text.replace(" " + letter + " ", " ")
 
-    for i in range(20):
+    for i in range(5):
         text = text.replace("  ", " ")
 
     return text

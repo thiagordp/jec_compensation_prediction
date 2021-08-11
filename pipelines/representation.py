@@ -26,7 +26,7 @@ def represent_bow_tf(dict_inputs=None):
 
     logging.info("Transforming to dict")
     for i, key in enumerate(dict_inputs.keys()):
-        dict_outputs[key] = tf_inputs[i]
+        dict_outputs[key] = list(tf_inputs[i])
 
     logging.info("Finished representation")
 
