@@ -18,7 +18,7 @@ def training_pipeline(inputs):
     outputs = dict()
     dict_compensations = dict()
 
-    logging.info("------------------------------------------------------------------------")
+    logging.info("-" * 50)
     dict_attributes = load_attributes(inputs)
 
     for key in dict_attributes.keys():
@@ -26,28 +26,30 @@ def training_pipeline(inputs):
 
     outputs["attributes"] = dict_attributes
 
-    # processed_inputs = preprocessing.pre_processing(inputs)
+    logging.info("-" * 50)
 
+    processed_inputs = preprocessing.pre_processing(inputs)
 
-    logging.info("------------------------------------------------------------------------")
+    logging.info("-" * 50)
     # logging.info("                            Text Representation                         ")
-    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(inputs)
+    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(processed_inputs)
 
     outputs["tf_transformer"] = tf_transformer
     outputs["tf_inputs"] = tf_inputs
     outputs["tf_features"] = list_features
 
-    logging.info("------------------------------------------------------------------------")
+    logging.info("-" * 50)
     bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
 
-    logging.info("------------------------------------------------------------------------")
+    # TODO: continuar aqui
+    logging.info("-" * 50)
 
     # logging.info("                             Addition of AELE                           ")
 
-    logging.info("------------------------------------------------------------------------")
+    logging.info("-" * 50)
     # logging.info("                              Remove Outliers                           ")
 
-    logging.info("------------------------------------------------------------------------")
+    logging.info("-" * 50)
     # logging.info("                                  Training                              ")
 
     return outputs
