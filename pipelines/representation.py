@@ -5,6 +5,8 @@
 import logging
 
 import pandas as pd
+import numpy as np
+
 import tqdm
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder
@@ -48,7 +50,6 @@ def append_attributes_to_bow(dict_inputs, dict_attributes):
 
 
 def __process_judge(judges, distinct_judges, type_judges, distinct_type_judges):
-
     judges = [str(judge_name).strip().lower().replace(" ", "_").replace(".", "") for judge_name in judges]
     type_judges = [str(judge_type).strip().lower().replace(" ", "_").replace(".", "") for judge_type in type_judges]
 
@@ -78,12 +79,6 @@ def __process_judge(judges, distinct_judges, type_judges, distinct_type_judges):
 
 
 def __process_has_x(feature, transf_feature):
-
-
-    # If transf is None
-    #   Fit the new encoder
-    #   Transform the feature
-
     if transf_feature is None:
         transf_feature = LabelEncoder()
 
@@ -92,18 +87,35 @@ def __process_has_x(feature, transf_feature):
     return transf_feature.transform(feature), transf_feature
 
 
-def __process_loss(arg):
-    return list(), 0
+def __process_loss(feature):
+    feature = [float(str(num).replace("-", "0").replace(",", ".")) for num in feature]
+    return np.array(feature)
 
 
-def __process_time_delay(arg):
-    return list(), 0
+def __process_time_delay(feature):
+    delay_minutes = list()
+
+    for time_delay in feature:
+        time_delay = time_delay.replace("- (superior a 4)", "00:00:00")
+        time_delay = time_delay.replace("-", "00:00:00")
+        splits = time_delay.split(":")
+
+        for i in range(3 - len(splits)):
+            splits.append("00")
+
+        seconds = float(splits[-1].strip()) / 60
+        minutes = float(splits[-2].strip())
+        hours = float(splits[-3].strip()) * 60
+
+        delay_minutes.append(hours + minutes + seconds)
+
+    return np.array(delay_minutes)
 
 
-def transform_attributes(dict_inputs):
+def transform_attributes(dict_attrib):
     """
 
-    :param dict_inputs:
+    :param dict_attrib:
     :return:
         Transformed attributes
         Dict of transformers
@@ -111,9 +123,9 @@ def transform_attributes(dict_inputs):
 
     logging.info("Transforming attributes")
 
-    raw_data_df = pd.DataFrame.from_dict(dict_inputs, orient='index')
+    raw_data_df = pd.DataFrame.from_dict(dict_attrib, orient='index')
 
-    raw_data_df.to_excel("test.xlsx", index=False)
+    # raw_data_df.to_excel("test.xlsx", index=False)
 
     # Extract attributes
     days_list = list(raw_data_df["dia"])
@@ -123,21 +135,69 @@ def transform_attributes(dict_inputs):
     judges = list(raw_data_df["juiz"])
     type_judges = list(raw_data_df["tipo_juiz"])
 
-    # Todo change to get from dict
     judges, transf_judges, type_judges, transf_type_judges = __process_judge(judges, None, type_judges, None)
 
-    has_permanent_loss_list, has_permanent_loss_transf = __process_has_x(raw_data_df["extravio_permanente"].values, None)
-    has_temporally_loss_list, has_temporally_loss_transf = __process_has_x(raw_data_df["extravio_temporario"].values, None)
-    interval_loss_list, interval_loss_transf = __process_loss(raw_data_df["intevalo_extravio"].values)
-    has_luggage_violation_list, has_luggage_violation_transf = __process_has_x(raw_data_df["tem_violacao_bagagem"].values, None)
+    has_permanent_loss_list, has_permanent_loss_transf = __process_has_x(raw_data_df["extravio_permanente"].values,
+                                                                         None)
+    has_temporally_loss_list, has_temporally_loss_transf = __process_has_x(raw_data_df["extravio_temporario"].values,
+                                                                           None)
+    interval_loss_list = __process_loss(raw_data_df["intevalo_extravio"].values)
+    has_luggage_violation_list, has_luggage_violation_transf = __process_has_x(
+        raw_data_df["tem_violacao_bagagem"].values, None)
     has_flight_delay_list, has_flight_delay_transf = __process_has_x(raw_data_df["tem_atraso_voo"].values, None)
-    has_flight_cancellation_list, has_flight_cancellation_transf = __process_has_x(raw_data_df["tem_cancelamento_voo"].values, None)
-    flight_delay_list, flight_delay_transf = __process_time_delay(raw_data_df["qtd_atraso_voo"].values)
+    has_flight_cancellation_list, has_flight_cancellation_transf = __process_has_x(
+        raw_data_df["tem_cancelamento_voo"].values, None)
+    flight_delay_list = __process_time_delay(raw_data_df["qtd_atraso_voo"].values)
     is_consumers_fault_list, is_consumers_fault_transf = __process_has_x(raw_data_df["culpa_consumidor"].values, None)
-    has_adverse_flight_conditions_list, has_adverse_flight_conditions_transf = __process_has_x(raw_data_df["tem_condicao_adversa_voo"].values, None)
+    has_adverse_flight_conditions_list, has_adverse_flight_conditions_transf = __process_has_x(
+        raw_data_df["tem_condicao_adversa_voo"].values, None)
     has_no_show_list, has_no_show_transf = __process_has_x(raw_data_df["tem_no_show"].values, None)
     has_overbooking_list, has_overbooking_transf = __process_has_x(raw_data_df["tem_overbooking"].values, None)
-    has_cancel_refunding_problem_list, has_cancel_refunding_transf = __process_has_x(raw_data_df["tem_cancelamento_usuario_ressarcimento"].values, None)
-    has_offer_disagreement_list, has_offer_disagreement_transf = __process_has_x(raw_data_df["tem_desacordo_oferta"].values, None)
+    has_cancel_refunding_problem_list, has_cancel_refunding_transf = __process_has_x(
+        raw_data_df["tem_cancelamento_usuario_ressarcimento"].values, None)
+    has_offer_disagreement_list, has_offer_disagreement_transf = __process_has_x(
+        raw_data_df["tem_desacordo_oferta"].values, None)
 
-    return None, None
+    logging.info("Transform back to dicts")
+
+    for index_key, key_input in tqdm.tqdm(enumerate(dict_attrib.keys())):
+        dict_attrib[key_input]["dia"] = days_list[index_key]
+        dict_attrib[key_input]["mes"] = months_list[index_key]
+        dict_attrib[key_input]["ano"] = years_list[index_key]
+        dict_attrib[key_input]["dia_semana"] = day_week_list[index_key]
+        dict_attrib[key_input]["juiz"] = judges[index_key]
+        dict_attrib[key_input]["tipo_juiz"] = type_judges[index_key]
+        dict_attrib[key_input]["juiz"] = judges[index_key]
+        dict_attrib[key_input]["extravio_permanente"] = has_permanent_loss_list[index_key]
+        dict_attrib[key_input]["extravio_temporario"] = has_temporally_loss_list[index_key]
+        dict_attrib[key_input]["intevalo_extravio"] = interval_loss_list[index_key]
+        dict_attrib[key_input]["tem_violacao_bagagem"] = has_luggage_violation_list[index_key]
+        dict_attrib[key_input]["tem_atraso_voo"] = has_flight_delay_list[index_key]
+        dict_attrib[key_input]["tem_cancelamento_voo"] = has_flight_cancellation_list[index_key]
+        dict_attrib[key_input]["qtd_atraso_voo"] = flight_delay_list[index_key]
+        dict_attrib[key_input]["culpa_consumidor"] = is_consumers_fault_list[index_key]
+        dict_attrib[key_input]["tem_condicao_adversa_voo"] = has_adverse_flight_conditions_list[index_key]
+        dict_attrib[key_input]["tem_no_show"] = has_no_show_list[index_key]
+        dict_attrib[key_input]["tem_overbooking"] = has_overbooking_list[index_key]
+        dict_attrib[key_input]["tem_cancelamento_usuario_ressarcimento"] = has_cancel_refunding_problem_list[index_key]
+        dict_attrib[key_input]["tem_desacordo_oferta"] = has_offer_disagreement_list[index_key]
+
+    dict_transfs = dict()
+
+    dict_transfs["extravio_permanente"] = has_permanent_loss_transf
+    dict_transfs["juiz"] = transf_judges
+    dict_transfs["tipo_juiz"] = transf_type_judges
+    dict_transfs["extravio_temporario"] = has_temporally_loss_transf
+    dict_transfs["tem_violacao_bagagem"] = has_luggage_violation_transf
+    dict_transfs["tem_atraso_voo"] = has_flight_delay_transf
+    dict_transfs["tem_cancelamento_voo"] = has_flight_cancellation_transf
+    dict_transfs["culpa_consumidor"] = is_consumers_fault_transf
+    dict_transfs["tem_condicao_adversa_voo"] = has_adverse_flight_conditions_transf
+    dict_transfs["tem_no_show"] = has_no_show_transf
+    dict_transfs["tem_overbooking"] = has_overbooking_transf
+    dict_transfs["tem_cancelamento_usuario_ressarcimento"] = has_cancel_refunding_transf
+    dict_transfs["tem_desacordo_oferta"] = has_offer_disagreement_transf
+
+    logging.info("Finished processing attributes")
+
+    return dict_attrib, dict_transfs

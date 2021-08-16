@@ -45,7 +45,7 @@ def training_pipeline(inputs):
     #outputs["fs_transformer"] = fs_transformer
 
     logging.info("-" * 50)
-    dict_attributes_transf = representation.transform_attributes(dict_attributes)  # TODO: transform attributes
+    dict_attributes, dict_attributes_transf = representation.transform_attributes(dict_attributes)  # TODO: transform attributes
 
     final_bow = representation.append_attributes_to_bow(dict_bow, dict_attributes_transf)
 
