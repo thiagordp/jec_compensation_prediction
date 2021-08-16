@@ -248,5 +248,6 @@ def pre_processing(dict_list_documents):
         processed_dict[key] = text
 
     del dict_list_documents
+    logging.info("Finished preprocessing")
 
     return processed_dict

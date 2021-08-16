@@ -35,20 +35,25 @@ def training_pipeline(inputs):
     tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(processed_inputs)
 
     outputs["tf_transformer"] = tf_transformer
-    outputs["tf_inputs"] = tf_inputs
     outputs["tf_features"] = list_features
 
     logging.info("-" * 50)
-    bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
+    dict_bow, fs_transformer = bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
 
-    # TODO: continuar aqui
-    logging.info("-" * 50)
-
-    # logging.info("                             Addition of AELE                           ")
+    outputs["tf_bow"] = dict_bow
+    outputs["fs_transformer"] = fs_transformer
 
     logging.info("-" * 50)
+    representation.transform_attributes(dict_attributes)  # TODO: transform attributes
+
+    representation.append_attributes_to_bow(dict_bow, dict_attributes)
+
+    logging.info("-" * 50)
+
+    # TODO: Remove outliers
     # logging.info("                              Remove Outliers                           ")
 
+    # TODO: Training
     logging.info("-" * 50)
     # logging.info("                                  Training                              ")
 

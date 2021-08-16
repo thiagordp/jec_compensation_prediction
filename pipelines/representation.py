@@ -4,6 +4,7 @@
 """
 import logging
 
+import tqdm
 from sklearn.feature_extraction.text import CountVectorizer
 
 
@@ -31,3 +32,14 @@ def represent_bow_tf(dict_inputs=None):
     logging.info("Finished representation")
 
     return dict_outputs, vectorizer, feature_names
+
+
+def append_attributes_to_bow(dict_inputs, dict_attributes):
+    logging.info("Appending Attributes to inputs")
+
+    for key_input in tqdm.tqdm(dict_inputs.keys()):
+        dict_inputs[key_input].append(dict_attributes[key_input])
+
+    logging.info("Finished appending")
+
+    return dict_inputs
