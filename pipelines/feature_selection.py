@@ -17,7 +17,7 @@ def bow_feature_selection(dict_bow, y, k):
     logging.info("Formatting data")
     formatted_y = np.array(list(y))
     array_bow = np.array(list(dict_bow.values()))
-    # TODO: Get y values
+
     logging.info("Selecting")
     fs_transformer = SelectKBest(score_func=mutual_info_regression, k=k)
     fit_bow = fs_transformer.fit_transform(array_bow, formatted_y)

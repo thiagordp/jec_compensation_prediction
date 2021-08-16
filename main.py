@@ -62,8 +62,6 @@ def setup_options(args):
             pass
 
 
-
-
 def main(args):
     setup_logging()
     # setup_options(args)

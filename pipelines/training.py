@@ -15,6 +15,7 @@ def training_pipeline(inputs):
     :param inputs: List of documents to use for training
     :return: The models
     """
+
     outputs = dict()
     dict_compensations = dict()
 
@@ -28,25 +29,25 @@ def training_pipeline(inputs):
 
     logging.info("-" * 50)
 
-    processed_inputs = preprocessing.pre_processing(inputs)
+    # processed_inputs = preprocessing.pre_processing(inputs)
 
     logging.info("-" * 50)
     # logging.info("                            Text Representation                         ")
-    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(processed_inputs)
+    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(inputs)
 
     outputs["tf_transformer"] = tf_transformer
     outputs["tf_features"] = list_features
 
     logging.info("-" * 50)
-    dict_bow, fs_transformer = bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
+    #dict_bow, fs_transformer = bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
 
-    outputs["tf_bow"] = dict_bow
-    outputs["fs_transformer"] = fs_transformer
+    #outputs["tf_bow"] = dict_bow
+    #outputs["fs_transformer"] = fs_transformer
 
     logging.info("-" * 50)
-    representation.transform_attributes(dict_attributes)  # TODO: transform attributes
+    dict_attributes_transf = representation.transform_attributes(dict_attributes)  # TODO: transform attributes
 
-    representation.append_attributes_to_bow(dict_bow, dict_attributes)
+    final_bow = representation.append_attributes_to_bow(dict_bow, dict_attributes_transf)
 
     logging.info("-" * 50)
 

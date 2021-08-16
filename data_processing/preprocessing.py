@@ -46,8 +46,15 @@ def process_attributes():
                                 ])
     attributes_df.dropna(subset=["Julgamento"], inplace=True)
     attributes_df.dropna(subset=["Atraso (com realocação)"], inplace=True)
+    attributes_df.dropna(subset=["Tipo Julgador(a)"], inplace=True)
 
     attributes_df.sort_values('Valor individual do dano moral')
+
+    attributes_df["Cancelamento pelo consumidor e problemas com o reembolso"] = \
+        attributes_df["Cancelamento pelo consumidor e problemas com o reembolso"].fillna(value="N")
+
+    attributes_df["Descumprimento de oferta (assento)"] = \
+        attributes_df["Descumprimento de oferta (assento)"].fillna(value="N")
 
     attributes_df = attributes_df[attributes_df["Data do Julgamento"].notna()]
     attributes_df = attributes_df[attributes_df["Data do Julgamento"].notnull()]
@@ -171,6 +178,11 @@ def load_attributes(inputs):
     dict_outputs = dict()
 
     attributes_df = pd.read_csv("data/attributes.csv")
+    df1 = attributes_df[attributes_df.isna().any(axis=1)]
+
+    df1.to_excel("nans.xlsx", index=False)
+
+    attributes_df.dropna(subset=['tipo_juiz'], inplace=True, axis=0)
 
     for key in tqdm.tqdm(inputs.keys()):
 
@@ -184,7 +196,6 @@ def load_attributes(inputs):
         dict_outputs[key] = dict_attr
 
     logging.info("Finished loading attributes")
-    # TODO: merge inputs and attr
     return dict_outputs
 
 
