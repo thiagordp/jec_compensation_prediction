@@ -6,6 +6,7 @@ from data_processing import preprocessing
 from data_processing.preprocessing import load_attributes
 from pipelines import representation
 from pipelines.feature_selection import bow_feature_selection
+from pipelines.remove_outliers import remove_outliers
 from util.constants import Defs
 
 
@@ -30,11 +31,11 @@ def training_pipeline(inputs):
 
     logging.info("-" * 50)
 
-    processed_inputs = preprocessing.pre_processing(inputs)
+    #processed_inputs = preprocessing.pre_processing(inputs)
 
     logging.info("-" * 50)
     # logging.info("                            Text Representation                         ")
-    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(processed_inputs)
+    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(inputs)
 
     outputs["tf_transformer"] = tf_transformer
     outputs["tf_features"] = list_features
@@ -48,13 +49,13 @@ def training_pipeline(inputs):
     logging.info("-" * 50)
     dict_attributes, dict_attributes_transf = representation.transform_attributes(dict_attributes)
 
-    final_bow = representation.append_attributes_to_bow(tf_inputs, dict_attributes)
+    dict_final_bow = representation.append_attributes_to_bow(tf_inputs, dict_attributes)
 
     logging.info("-" * 50)
 
-    # TODO: Remove outliers
-    # logging.info("                              Remove Outliers                           ")
+    dict_final_bow, outliers_transf = remove_outliers(dict_final_bow)
 
+    input("...")
     # TODO: Training
     logging.info("-" * 50)
     # logging.info("                                  Training                              ")

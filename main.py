@@ -73,7 +73,9 @@ def main(args):
 
     docs = read_docs(Defs.JEC_BASE_DATASET_PATH + Defs.JEC_TRAIN_DATASET_PATH, list_ids)
 
-    training.training_pipeline(docs)
+    dict_training = training.training_pipeline(docs)
+
+    training.predict_pipeline(dict_training)
 
 
 if __name__ == "__main__":
