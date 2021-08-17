@@ -19,31 +19,32 @@ nltk.download('punkt')
 nltk.download('stopwords')
 
 
-def process_attributes():
+def process_attributes(file_path, sheet_name, ignore_zero=True):
     logging.info("Processing attributes")
 
-    attributes_df = pd.read_csv(Defs.JEC_BASE_DATASET_PATH + "regression_data_attributes.csv",
-                                usecols=[
-                                    "Sentença",
-                                    "Julgamento",
-                                    "Valor individual do dano moral",
-                                    "Data do Julgamento",
-                                    "Julgador(a)",
-                                    "Tipo Julgador(a)",
-                                    "Extravio Definitivo",
-                                    "Extravio Temporário",
-                                    "Intervalo do Extravio (dias)",
-                                    "Violação (furto, avaria)",
-                                    "Cancelamento (sem realocação)/Alteração de destino",
-                                    "Atraso (com realocação)",
-                                    "Intervalo do Atraso (horas:minutos)",
-                                    "Culpa exclusiva do consumidor",
-                                    "Condições climáticas desfavoráveis/Fechamento aeroporto",
-                                    "No Show",
-                                    "Overbooking",
-                                    "Cancelamento pelo consumidor e problemas com o reembolso",
-                                    "Descumprimento de oferta (assento)",
-                                ])
+    attributes_df = pd.read_excel(file_path,
+                                  sheet_name=sheet_name,
+                                  usecols=[
+                                      "Sentença",
+                                      "Julgamento",
+                                      "Valor individual do dano moral",
+                                      "Data do Julgamento",
+                                      "Julgador(a)",
+                                      "Tipo Julgador(a)",
+                                      "Extravio Definitivo",
+                                      "Extravio Temporário",
+                                      "Intervalo do Extravio (dias)",
+                                      "Violação (furto, avaria)",
+                                      "Cancelamento (sem realocação)/Alteração de destino",
+                                      "Atraso (com realocação)",
+                                      "Intervalo do Atraso (horas:minutos)",
+                                      "Culpa exclusiva do consumidor",
+                                      "Condições climáticas desfavoráveis/Fechamento aeroporto",
+                                      "No Show",
+                                      "Overbooking",
+                                      "Cancelamento pelo consumidor e problemas com o reembolso",
+                                      "Descumprimento de oferta (assento)",
+                                  ])
     attributes_df.dropna(subset=["Julgamento"], inplace=True)
     attributes_df.dropna(subset=["Atraso (com realocação)"], inplace=True)
     attributes_df.dropna(subset=["Tipo Julgador(a)"], inplace=True)
@@ -64,12 +65,12 @@ def process_attributes():
 
     for index, row in tqdm.tqdm(attributes_df.iterrows()):
 
-        num_judgement = row["Sentença"]
+        num_judgement = int(row["Sentença"])
         jec_class = row["Julgamento"]
         date = row["Data do Julgamento"]
 
         format_string = "%d/%m/%Y"
-        date = datetime.strptime(date, format_string)
+        #date = datetime.strptime(date, format_string)
         year = date.year
         month = date.month
         day = date.day
@@ -83,7 +84,7 @@ def process_attributes():
         has_luggage_violation = row["Violação (furto, avaria)"]
         has_flight_cancellation = row["Cancelamento (sem realocação)/Alteração de destino"]
         has_flight_delay = row["Atraso (com realocação)"]
-        flight_delay = row["Intervalo do Atraso (horas:minutos)"]
+        flight_delay = str(row["Intervalo do Atraso (horas:minutos)"])
         is_consumers_fault = row["Culpa exclusiva do consumidor"]
         has_adverse_flight_conditions = row["Condições climáticas desfavoráveis/Fechamento aeroporto"]
         has_no_show = row["No Show"]
@@ -99,7 +100,7 @@ def process_attributes():
                 str(row["Valor total do dano moral"]).replace("R$ ", "").replace(".", "").replace(",", "."))
 
         final_data.append([
-            int(num_judgement),
+            num_judgement,
             jec_class,
             year,
             month,
@@ -150,7 +151,8 @@ def process_attributes():
                             ])
 
     file_path = Defs.JEC_ATTRIBUTES_PROC
-    final_df = final_df.loc[final_df['indenizacao'] > 1]
+    if ignore_zero:
+        final_df = final_df.loc[final_df['indenizacao'] > 1]
     final_df.to_csv(file_path, index=False)
     final_df.to_excel(file_path.replace(".csv", ".xlsx"), index=False)
 

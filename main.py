@@ -11,7 +11,7 @@ import sys
 
 import pandas as pd
 
-from pipelines import training
+from pipelines import training, predicting
 from data_processing.preprocessing import process_attributes
 from util.constants import Defs, OPTION_FIELDS
 
@@ -69,13 +69,25 @@ def main(args):
     logging.info("-" * 50)
     logging.info("PREDICTION OF COMPENSATION VALUES FROM JEC")
 
-    list_ids = process_attributes()
+    list_ids = process_attributes(
+        file_path="data/regression_data_attributes.xlsx",
+        sheet_name=0
+    )
 
-    docs = read_docs(Defs.JEC_BASE_DATASET_PATH + Defs.JEC_TRAIN_DATASET_PATH, list_ids)
+    docs = read_docs("data/train_data/", list_ids)
 
-    dict_training = training.training_pipeline(docs)
+    dict_train_info = training.training_pipeline(docs)
+    # ict_train_info = None
+    # ------------------------------------------------- #
+    logging.info("="*50)
+    list_ids = process_attributes(
+        file_path="data/regression_data_attributes.xlsx",
+        sheet_name=1,
+        ignore_zero=False
+    )
+    docs = read_docs("data/test_data/", list_ids)
 
-    training.predict_pipeline(dict_training)
+    predicting.predicting_pipeline(docs, dict_train_info)
 
 
 if __name__ == "__main__":

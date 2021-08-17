@@ -12,7 +12,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder
 
 
-def represent_bow_tf(dict_inputs=None):
+def represent_bow_tf(dict_inputs=None, vectorizer=None, predict=False):
     logging.info("Starting text representation")
 
     if dict_inputs is None:
@@ -20,12 +20,17 @@ def represent_bow_tf(dict_inputs=None):
 
     logging.info("Transforming dict to list")
     list_inputs = dict_inputs.values()
+    if not predict:
+        logging.info("Fit Transform BOW")
+        vectorizer = CountVectorizer(ngram_range=(1, 4), max_features=25000, min_df=1)
+        tf_inputs = vectorizer.fit_transform(list_inputs).toarray()
 
-    logging.info("Fit Transform BOW")
-    vectorizer = CountVectorizer(ngram_range=(1, 4), max_features=25000, min_df=1)
-    tf_inputs = vectorizer.fit_transform(list_inputs).toarray()
-    feature_names = vectorizer.get_feature_names()
-    logging.info("Features: %s" % len(feature_names))
+        feature_names = vectorizer.get_feature_names()
+        logging.info("Features: %s" % len(feature_names))
+    else:
+        logging.info("Fit Transform BOW")
+        tf_inputs = vectorizer.transform(list_inputs).toarray()
+        feature_names = vectorizer.get_feature_names()
 
     dict_outputs = {}
 
@@ -108,6 +113,7 @@ def __process_time_delay(feature):
     for time_delay in feature:
         time_delay = time_delay.replace("- (superior a 4)", "00:00:00")
         time_delay = time_delay.replace("-", "00:00:00")
+        time_delay = time_delay.split(" ")[-1]
         splits = time_delay.split(":")
 
         for i in range(3 - len(splits)):
@@ -122,7 +128,7 @@ def __process_time_delay(feature):
     return np.array(delay_minutes)
 
 
-def transform_attributes(dict_attrib):
+def transform_attributes(dict_attrib, transformer=None):
     """
 
     :param dict_attrib:
@@ -135,7 +141,6 @@ def transform_attributes(dict_attrib):
 
     raw_data_df = pd.DataFrame.from_dict(dict_attrib, orient='index')
 
-
     # raw_data_df.to_excel("test.xlsx", index=False)
 
     # Extract attributes
@@ -145,6 +150,10 @@ def transform_attributes(dict_attrib):
     day_week_list = list(raw_data_df["dia_semana"])
     judges = list(raw_data_df["juiz"])
     type_judges = list(raw_data_df["tipo_juiz"])
+
+    # TODO adjust to allow prediction
+    if transformer is not None:
+        transf_judges = transformer.get("juiz")
 
     judges, transf_judges, type_judges, transf_type_judges = __process_judge(judges, None, type_judges, None)
 
