@@ -41,8 +41,18 @@ def represent_bow_tf(dict_inputs=None):
 def append_attributes_to_bow(dict_inputs, dict_attributes):
     logging.info("Appending Attributes to inputs")
 
+    ignore_attrib_fields = list()
+
     for key_input in tqdm.tqdm(dict_inputs.keys()):
-        dict_inputs[key_input].append(dict_attributes[key_input])
+        dict_attri_case = dict_attributes[key_input]
+
+        for key_attr in dict_attri_case.keys():
+            value = dict_attri_case[key_attr]
+
+            if isinstance(value, float) or isinstance(value, (int, np.integer)):
+                dict_inputs[key_input].append(value)
+            elif isinstance(value, list):
+                dict_inputs[key_input].extend(value)
 
     logging.info("Finished appending")
 
@@ -125,6 +135,7 @@ def transform_attributes(dict_attrib):
 
     raw_data_df = pd.DataFrame.from_dict(dict_attrib, orient='index')
 
+
     # raw_data_df.to_excel("test.xlsx", index=False)
 
     # Extract attributes
@@ -159,8 +170,11 @@ def transform_attributes(dict_attrib):
         raw_data_df["tem_desacordo_oferta"].values, None)
 
     logging.info("Transform back to dicts")
+    list_keys_attrib = dict_attrib.keys()
+    dict_attrib = dict()
 
-    for index_key, key_input in tqdm.tqdm(enumerate(dict_attrib.keys())):
+    for index_key, key_input in tqdm.tqdm(enumerate(list_keys_attrib)):
+        dict_attrib[key_input] = dict()
         dict_attrib[key_input]["dia"] = days_list[index_key]
         dict_attrib[key_input]["mes"] = months_list[index_key]
         dict_attrib[key_input]["ano"] = years_list[index_key]
