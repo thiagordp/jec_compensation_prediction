@@ -4,6 +4,7 @@ Code for training the models
 import logging
 from data_processing import preprocessing
 from data_processing.preprocessing import load_attributes
+from ml.train_regression import train_ensemble_voting
 from pipelines import representation
 from pipelines.feature_selection import bow_feature_selection
 from pipelines.remove_outliers import remove_outliers
@@ -19,7 +20,7 @@ def training_pipeline(inputs):
 
     outputs = dict()
     dict_compensations = dict()
-    logging.info("="*50)
+    logging.info("=" * 50)
     logging.info("TRAINING MODELS PIPELINE")
     logging.info("-" * 50)
     dict_attributes = load_attributes(inputs)
@@ -31,20 +32,20 @@ def training_pipeline(inputs):
 
     logging.info("-" * 50)
 
-    #processed_inputs = preprocessing.pre_processing(inputs)
+    processed_inputs = preprocessing.pre_processing(inputs)
 
     logging.info("-" * 50)
     # logging.info("                            Text Representation                         ")
-    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(inputs)
+    tf_inputs, tf_transformer, list_features = representation.represent_bow_tf(processed_inputs)
 
     outputs["tf_transformer"] = tf_transformer
-    # outputs["tf_features"] = list_features
+    outputs["tf_features"] = list_features
 
-    # logging.info("-" * 50)
-    # dict_bow, fs_transformer = bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
+    logging.info("-" * 50)
+    tf_inputs, fs_transformer = bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
 
-    # outputs["tf_bow"] = dict_bow
-    # outputs["fs_transformer"] = fs_transformer
+    outputs["tf_bow"] = tf_inputs
+    outputs["fs_transformer"] = fs_transformer
 
     logging.info("-" * 50)
     dict_attributes, dict_attributes_transf = representation.transform_attributes(dict_attributes)
@@ -58,10 +59,9 @@ def training_pipeline(inputs):
 
     outputs["outliers_transf"] = outliers_transf
 
-    return outputs
-
     # TODO: Training
     logging.info("-" * 50)
-    # logging.info("                                  Training                              ")
+    regressor = train_ensemble_voting(dict_final_bow, dict_compensations)
+
 
     return outputs

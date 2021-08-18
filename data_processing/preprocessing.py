@@ -93,11 +93,9 @@ def process_attributes(file_path, sheet_name, ignore_zero=True):
         has_offer_disagreement = row["Descumprimento de oferta (assento)"]
 
         if Defs.GET_INDIVIDUAL_VALUES:
-            indenizacao = float(
-                str(row["Valor individual do dano moral"]).replace("R$ ", "").replace(".", "").replace(",", "."))
+            indenizacao = float(str(row["Valor individual do dano moral"]))
         else:
-            indenizacao = float(
-                str(row["Valor total do dano moral"]).replace("R$ ", "").replace(".", "").replace(",", "."))
+            indenizacao = float(str(row["Valor total do dano moral"]))
 
         final_data.append([
             num_judgement,
