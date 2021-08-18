@@ -70,10 +70,12 @@ def __process_judge(judges, distinct_judges, type_judges, distinct_type_judges):
 
     judges = pd.get_dummies(judges, prefix='juiz')
     type_judges = pd.get_dummies(type_judges, prefix="tipo_juiz")
+    judges.reindex(sorted(judges.columns), axis=1)
+    judges.sort_index(axis=1, inplace=True)
+    type_judges.sort_index(axis=1, inplace=True)
 
     if distinct_judges is not None:
         for distinct in distinct_judges:
-
             if distinct not in judges.columns:
                 judges[distinct] = 0
 
@@ -82,10 +84,26 @@ def __process_judge(judges, distinct_judges, type_judges, distinct_type_judges):
         for distinct_type in distinct_type_judges:
 
             if distinct_type not in type_judges.columns:
-                judges[distinct_type] = 0
+                type_judges[distinct_type] = 0
 
-    list_distinct_judges = set(judges.columns)
-    list_distinct_type_judges = set(type_judges.columns)
+    list_distinct_judges = sorted(set(judges.columns))
+    logging.info("list_dist_judges       %s", str(list_distinct_judges))
+    list_distinct_type_judges = sorted(set(type_judges.columns))
+    logging.info("list_dist_type_judges  %s", str(list_distinct_type_judges))
+
+    # Remove column not in the default set of judges
+    if distinct_judges is not None:
+        for distinct_judge in list_distinct_judges:
+            if distinct_judge not in distinct_judges:
+                del judges[distinct_judge]
+    if distinct_type_judges is not None:
+        for distinct_type_judge in list_distinct_type_judges:
+            if distinct_type_judge not in distinct_type_judges:
+                del type_judges[distinct_type_judge]
+
+    # TODO Out of order
+    judges.sort_index(axis=1, inplace=True)
+    type_judges.sort_index(axis=1, inplace=True)
 
     judges = [list(judge) for judge in list(judges.to_numpy())]
     type_judges = [list(type_judge) for type_judge in list(type_judges.to_numpy())]
@@ -154,29 +172,53 @@ def transform_attributes(dict_attrib, transformer=None):
     # TODO adjust to allow prediction
     if transformer is not None:
         transf_judges = transformer.get("juiz")
+        transf_type_judges = transformer.get("tipo_juiz")
+        has_permanent_loss_transf = transformer.get("extravio_permanente")
+        has_temporally_loss_transf = transformer.get("extravio_temporario")
+        has_luggage_violation_transf = transformer.get("tem_violacao_bagagem")
+        has_flight_delay_transf = transformer.get("tem_atraso_voo")
+        has_flight_cancellation_transf = transformer.get("tem_cancelamento_voo")
+        is_consumers_fault_transf = transformer.get("culpa_consumidor")
+        has_adverse_flight_conditions_transf = transformer.get("tem_condicao_adversa_voo")
+        has_no_show_transf = transformer.get("tem_no_show")
+        has_overbooking_transf = transformer.get("tem_overbooking")
+        has_cancel_refunding_transf = transformer.get("tem_cancelamento_usuario_ressarcimento")
+        has_offer_disagreement_transf = transformer.get("tem_desacordo_oferta")
 
-    judges, transf_judges, type_judges, transf_type_judges = __process_judge(judges, None, type_judges, None)
+    else:
+        transf_judges = None
+        transf_type_judges = None
+        has_permanent_loss_transf = None
+        has_temporally_loss_transf = None
+        has_luggage_violation_transf = None
+        has_flight_delay_transf = None
+        has_flight_cancellation_transf = None
+        is_consumers_fault_transf = None
+        has_adverse_flight_conditions_transf = None
+        has_no_show_transf = None
+        has_overbooking_transf = None
+        has_cancel_refunding_transf = None
+        has_offer_disagreement_transf = None
 
-    has_permanent_loss_list, has_permanent_loss_transf = __process_has_x(raw_data_df["extravio_permanente"].values,
-                                                                         None)
-    has_temporally_loss_list, has_temporally_loss_transf = __process_has_x(raw_data_df["extravio_temporario"].values,
-                                                                           None)
+    judges, transf_judges, type_judges, transf_type_judges = __process_judge(judges, transf_judges, type_judges,
+                                                                             transf_type_judges)
+    # If transformer is None (usually when formatting training data, the input to the functions will be None.
+    # Else, the transformer is passed as input, and it is used to transform the data instead of creating a new transformer
+    has_permanent_loss_list, has_permanent_loss_transf = __process_has_x(raw_data_df["extravio_permanente"].values, has_permanent_loss_transf)
+    has_temporally_loss_list, has_temporally_loss_transf = __process_has_x(raw_data_df["extravio_temporario"].values, has_temporally_loss_transf)
     interval_loss_list = __process_loss(raw_data_df["intevalo_extravio"].values)
-    has_luggage_violation_list, has_luggage_violation_transf = __process_has_x(
-        raw_data_df["tem_violacao_bagagem"].values, None)
-    has_flight_delay_list, has_flight_delay_transf = __process_has_x(raw_data_df["tem_atraso_voo"].values, None)
-    has_flight_cancellation_list, has_flight_cancellation_transf = __process_has_x(
-        raw_data_df["tem_cancelamento_voo"].values, None)
+    has_luggage_violation_list, has_luggage_violation_transf = __process_has_x(raw_data_df["tem_violacao_bagagem"].values, has_luggage_violation_transf)
+    has_flight_delay_list, has_flight_delay_transf = __process_has_x(raw_data_df["tem_atraso_voo"].values, has_flight_delay_transf)
+    has_flight_cancellation_list, has_flight_cancellation_transf = __process_has_x(raw_data_df["tem_cancelamento_voo"].values, has_flight_cancellation_transf)
     flight_delay_list = __process_time_delay(raw_data_df["qtd_atraso_voo"].values)
-    is_consumers_fault_list, is_consumers_fault_transf = __process_has_x(raw_data_df["culpa_consumidor"].values, None)
-    has_adverse_flight_conditions_list, has_adverse_flight_conditions_transf = __process_has_x(
-        raw_data_df["tem_condicao_adversa_voo"].values, None)
-    has_no_show_list, has_no_show_transf = __process_has_x(raw_data_df["tem_no_show"].values, None)
-    has_overbooking_list, has_overbooking_transf = __process_has_x(raw_data_df["tem_overbooking"].values, None)
-    has_cancel_refunding_problem_list, has_cancel_refunding_transf = __process_has_x(
-        raw_data_df["tem_cancelamento_usuario_ressarcimento"].values, None)
-    has_offer_disagreement_list, has_offer_disagreement_transf = __process_has_x(
-        raw_data_df["tem_desacordo_oferta"].values, None)
+    is_consumers_fault_list, is_consumers_fault_transf = __process_has_x(raw_data_df["culpa_consumidor"].values, is_consumers_fault_transf)
+    has_adverse_flight_conditions_list, has_adverse_flight_conditions_transf = __process_has_x(raw_data_df["tem_condicao_adversa_voo"].values,
+                                                                                               has_adverse_flight_conditions_transf)
+    has_no_show_list, has_no_show_transf = __process_has_x(raw_data_df["tem_no_show"].values, has_no_show_transf)
+    has_overbooking_list, has_overbooking_transf = __process_has_x(raw_data_df["tem_overbooking"].values, has_overbooking_transf)
+    has_cancel_refunding_problem_list, has_cancel_refunding_transf = __process_has_x(raw_data_df["tem_cancelamento_usuario_ressarcimento"].values,
+                                                                                     has_cancel_refunding_transf)
+    has_offer_disagreement_list, has_offer_disagreement_transf = __process_has_x(raw_data_df["tem_desacordo_oferta"].values, has_offer_disagreement_transf)
 
     logging.info("Transform back to dicts")
     list_keys_attrib = dict_attrib.keys()

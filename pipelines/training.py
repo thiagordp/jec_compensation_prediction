@@ -40,24 +40,26 @@ def training_pipeline(inputs):
     outputs["tf_transformer"] = tf_transformer
     # outputs["tf_features"] = list_features
 
-    logging.info("-" * 50)
-    dict_bow, fs_transformer = bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
+    # logging.info("-" * 50)
+    # dict_bow, fs_transformer = bow_feature_selection(tf_inputs, dict_compensations.values(), Defs.K_BEST_FEATURES)
 
-    outputs["tf_bow"] = dict_bow
-    outputs["fs_transformer"] = fs_transformer
+    # outputs["tf_bow"] = dict_bow
+    # outputs["fs_transformer"] = fs_transformer
 
     logging.info("-" * 50)
     dict_attributes, dict_attributes_transf = representation.transform_attributes(dict_attributes)
-    outputs["attrib_transformer"] = fs_transformer
+    outputs["attrib_transformer"] = dict_attributes_transf
 
     dict_final_bow = representation.append_attributes_to_bow(tf_inputs, dict_attributes)
 
     logging.info("-" * 50)
 
-    return outputs
     dict_final_bow, outliers_transf = remove_outliers(dict_final_bow)
 
-    input("...")
+    outputs["outliers_transf"] = outliers_transf
+
+    return outputs
+
     # TODO: Training
     logging.info("-" * 50)
     # logging.info("                                  Training                              ")
