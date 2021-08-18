@@ -59,9 +59,8 @@ def training_pipeline(inputs):
 
     outputs["outliers_transf"] = outliers_transf
 
-    # TODO: Training
     logging.info("-" * 50)
     regressor = train_ensemble_voting(dict_final_bow, dict_compensations)
-
+    outputs["regressor"] = regressor
 
     return outputs

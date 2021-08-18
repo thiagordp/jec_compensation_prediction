@@ -8,6 +8,7 @@ import logging
 
 from data_processing.preprocessing import process_attributes, load_attributes
 from main import read_docs
+from ml.train_regression import predict_ensemble_voting
 from pipelines import representation
 from pipelines.remove_outliers import remove_outliers
 from pipelines.feature_selection import bow_feature_selection
@@ -31,11 +32,11 @@ def predicting_pipeline(inputs, dict_train_info):
 
     # Feature selection using transformer
 
-    # fs_transformer = dict_train_info["fs_transformer"]
-    # dict_bow, fs_transformer = bow_feature_selection(
-    #     dict_bow=tf_inputs,
-    #     fs_transformer=fs_transformer
-    # )
+    fs_transformer = dict_train_info["fs_transformer"]
+    tf_inputs, fs_transformer = bow_feature_selection(
+        dict_bow=tf_inputs,
+        fs_transformer=fs_transformer
+    )
 
     dict_attributes_transf = dict_train_info["attrib_transformer"]
 
@@ -48,4 +49,6 @@ def predicting_pipeline(inputs, dict_train_info):
     outliers_transf = dict_train_info["outliers_transf"]
     dict_final_bow, outliers_transf = remove_outliers(dict_final_bow, outliers_transf)
 
+    predict_ensemble_voting(dict_final_bow, dict_train_info["regressor"])
+    input("...")
     return None
