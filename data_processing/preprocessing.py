@@ -6,6 +6,7 @@ import re
 from datetime import datetime
 
 import nltk
+import pandas_profiling
 from matplotlib import pyplot as plt
 import tqdm
 from nltk import word_tokenize, RSLPStemmer
@@ -84,7 +85,7 @@ def process_attributes(file_path, sheet_name, ignore_zero=True):
         has_luggage_violation = row["Violação (furto, avaria)"]
         has_flight_cancellation = row["Cancelamento (sem realocação)/Alteração de destino"]
         has_flight_delay = row["Atraso (com realocação)"]
-        flight_delay = str(row["Intervalo do Atraso (horas:minutos)"])
+        flight_delay = str(row["Intervalo do Atraso (horas:minutos)"]).replace("1900-01-01 ", "").replace("-", "00:00:00")
         is_consumers_fault = row["Culpa exclusiva do consumidor"]
         has_adverse_flight_conditions = row["Condições climáticas desfavoráveis/Fechamento aeroporto"]
         has_no_show = row["No Show"]
@@ -154,18 +155,16 @@ def process_attributes(file_path, sheet_name, ignore_zero=True):
     final_df.to_csv(file_path, index=False)
     final_df.to_excel(file_path.replace(".csv", ".xlsx"), index=False)
 
+    prof = pandas_profiling.ProfileReport(final_df, title="Attributes Report", explorative=True)
+    prof.to_file("data/output_report.html")
+
     logging.info("Attributes info:")
     logging.info("\tMean %.2f" % np.mean(final_df["indenizacao"]))
     logging.info("\tStd  %.2f" % np.std(final_df["indenizacao"]))
     logging.info("\tMin  %.2f" % np.min(final_df["indenizacao"]))
     logging.info("\tMax  %.2f" % np.max(final_df["indenizacao"]))
 
-    plt.grid(axis='y', alpha=0.3)
-    n, bins, patches = plt.hist(x=final_df["indenizacao"], bins=7, color='#0504aa',
-                                alpha=0.7, rwidth=0.85)
-
     list_ids = list(final_df["judgement"])
-    plt.savefig("data/hist_attributes.pdf")
 
     logging.info("Finished data_processing attributes")
 

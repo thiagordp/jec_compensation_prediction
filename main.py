@@ -65,7 +65,6 @@ def setup_options(args):
 def main(args):
     setup_logging()
     # setup_options(args)
-    logging.info(args)
     logging.info("-" * 50)
     logging.info("PREDICTION OF COMPENSATION VALUES FROM JEC")
 
